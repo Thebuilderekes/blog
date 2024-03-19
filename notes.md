@@ -72,13 +72,11 @@ categories
 
 admin
 |--config
-|-- constants.php
-|-- database.php
-|--partials
-|-header.php
+|--constants.php
+|--database.php
 |--manage-users.php
 |--manage-category.php  
- |--add-users.php
+|--add-users.php
 |--add-category.php
 |--add-post.php
 |--edit-user.php
@@ -191,6 +189,7 @@ if (mysqli_errno($connection)){
 ## SIGNUP FUNCTIONALITY IN DATATBASE
 
 After creating the devHangout database, Create a table in the devHangout database on phpmyadmin and name name it `users` having 8 ROWS to match the number of input fields in on the signup form
+set the fields in the database as follows, from first row to 8th row:
 
 1 row -> id, type - INT, length - 11, default-none, attributes- unsigned, index- primary
 2 row -> firstname, type - VARCHAR, length - 50
@@ -202,8 +201,8 @@ After creating the devHangout database, Create a table in the devHangout databas
 8 row -> is_admin, type - TINYINT, length - 1 (because of hashing)
 THEN SAVE.
 
-
 ## SIGNUP FORM LOGIC
+
 use ROOT_URL signup-logic.php for the form action as with other links
 on opening form element in the sign up, use `enctype="multipart/form-data"` and `method="POST"` as attributes
 
@@ -211,41 +210,45 @@ on the signup.php page `require 'config/constants.php'` at the top of the file
 
 ### Sign up logic page
 
-Create ```signup-logic.php`` file that the submit button on the signup page leads to and `require 'config/database.php'` in the file.
+Create ``signup-logic.php` file in the root that the submit button on the `signup.php` page leads to and `require 'config/database.php'` in the file.
 
 When you click on the submit button on the sign up page, it will take you to the signup logic page.
 also include the following code in the sign up logic file:
 
 ```php
-// get signup form data if signup button was clicked 
+// get signup form data if signup button was clicked
 if (isset($_POST['submit'])) {
-$firstname = filter_var($_POST['firstname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS); 
-$lastname = filter_var($_POST['lastname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS); 
+$firstname = filter_var($_POST['firstname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+$lastname = filter_var($_POST['lastname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 $username = filter_var($_POST['username'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-$email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL); 
-$createpassword = filter_var($_POST['createpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS); $confirmpassword = filter_var($_POST['confirmpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS); 
+$email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
+$createpassword = filter_var($_POST['createpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS); $confirmpassword = filter_var($_POST['confirmpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 $avatar = $_FILES['avatar'];
 
 
-//You are checking for everythingso you have to be trying to submit when all fields are filled for you to know if there is any error. You echo to check things.
+//You are checking for every input field so you have to have everything filled be trying to submit when all fields are filled for you to know if there is any error.
+
+//check opening and closing curly braces for every if statement
+
+//You can use echo command to debug and to check if things are working.
 
 if(!$firstname){
     $_SESSION['signup'] = 'Please enter your firstname';
 }elseif (!$lastname){
     $_SESSION['signup'] = 'Please enter your lastname';
-    
+
     }
     elseif (!$email){
     $_SESSION['signup'] = 'Please enter your email';
-    
+
     }
     elseif (!$username){
     $_SESSION['signup'] = 'Please enter your usernamename';
-    
+
     }
     elseif (strlen($createpassword) < 8 || ($confirmpassword) < 8){
     $_SESSION['signup'] = 'Password should be 8+ characters long';
-    
+
     }
     elseif (!$avatar['name']){
     $_SESSION['signup'] = 'Please add an avatar';
@@ -255,29 +258,110 @@ if(!$firstname){
         $_SESSION['signup'] = 'Passwords do not match!';
     }else {
 
-      $hashed_passwaord = password_hash($createpassword, PASSWORD_DEFAULT);
+      $hashed_password = password_hash($createpassword, PASSWORD_DEFAULT);
 
       //check if user or email already exists in the database
       $user_check_query = "SELECT * FROM users WHERE username= $username OR email=$email";
       $user_check_result = mysqli_query($connection, $user_check_query);
 
-      if(mysqli_num_rows(user_ceheck_result) > 0){
+      if(mysqli_num_rows(user_check_result) > 0){
 
-        $_SESSION['signup'] = 'Username or passowrd already exists!';
+        $_SESSION['signup'] = 'Username or password already exists!';
 
 
       }else {
 
       }
     }
-    }
-
+    
 
 //if button wasn't clicked, bounce back to signup page
-} else { 
-    header('Iocation: ' . ROOT_URL . 'signup.php'); 
-    die(); 
+} else {
+    header('location: ' . ROOT_URL . 'signup.php');
+    die();
+}
+
 }
 ```
 
 
+
+
+alternative code to be tested later
+```php
+<?php
+
+if (isset($_POST['submit'])) {
+  $firstname = filter_var(trim($_POST['firstname']), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+  $lastname = filter_var(trim($_POST['lastname']), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+  $username = filter_var(trim($_POST['username']), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+  $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
+
+  // Validate username format (example using regular expressions)
+  if (!preg_match('/^[a-zA-Z0-9._]+$/', $username)) {
+    $_SESSION['signup'] = 'Username should only contain letters, numbers, periods, and underscores.';
+    goto no_submit; // Use goto to avoid nested ifs unnecessarily
+  }
+
+  // Basic email format check
+  if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $_SESSION['signup'] = 'Please enter a valid email address.';
+    goto no_submit;
+  }
+
+  $createpassword = filter_var(trim($_POST['createpassword']), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+  $confirmpassword = filter_var(trim($_POST['confirmpassword']), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+  // Check for empty password fields before strlen
+  if (empty($createpassword) || empty($confirmpassword)) {
+    $_SESSION['signup'] = 'Please enter and confirm your password.';
+    goto no_submit;
+  }
+
+  if (strlen($createpassword) < 8) {
+    $_SESSION['signup'] = 'Password should be at least 8 characters long.';
+    goto no_submit;
+  }
+
+  // More robust password validation (consider using password_strength libraries)
+  // ...
+
+  if ($createpassword !== $confirmpassword) {
+    $_SESSION['signup'] = 'Passwords do not match!';
+    goto no_submit;
+  }
+
+  // File upload validation (example using allowed MIME types)
+  $avatar = $_FILES['avatar'];
+  $allowed_mime_types = array("image/jpeg", "image/png", "image/gif");
+  if (!in_array($avatar['type'], $allowed_mime_types)) {
+    $_SESSION['signup'] = 'Invalid avatar file type. Only images (jpeg, png, gif) are allowed.';
+    goto no_submit;
+  }
+
+  // Hash password securely
+  $hashed_password = password_hash($createpassword, PASSWORD_DEFAULT);
+
+  // Use prepared statements to prevent SQL injection
+  $stmt = $connection->prepare("INSERT INTO users (firstname, lastname, username, email, password) VALUES (?, ?, ?, ?, ?)");
+  $stmt->bind_param("sssss", $firstname, $lastname, $username, $email, $hashed_password);
+  $stmt->execute();
+
+  // Check for insertion errors (example using mysqli_error)
+  if ($stmt->error) {
+    // Log the error or display a generic error message to the user
+    $_SESSION['signup'] = 'Registration failed. Please try again later.';
+    goto no_submit;
+  }
+
+  // Handle successful registration (redirect, etc.)
+  // ...
+
+  $stmt->close(); // Close the prepared statement
+
+  no_submit: // Label to jump to instead of nested ifs
+} else {
+  header('location: ' . ROOT_URL . 'signup.php');
+  die();
+}
+```
