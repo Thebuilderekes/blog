@@ -72,8 +72,8 @@ categories
 
 admin
 |--config
-   |-- constants.php
-   |-- database.php
+|-- constants.php
+|-- database.php
 |--partials
 |-header.php
 |--manage-users.php
@@ -108,14 +108,12 @@ signup.php
 
 OR YOU COULD JUST HAVE ONLY ONE CONFIG FOLDER AND LINK TO OTHER FILES EFFECTIVELY
 
-
 ## Steps to making the files and everything play nicely
 
 Make sure you get the paths right ../ or ../../
 Don't forget to end each statement with ;
 
-
-In ```constants.php```
+In `constants.php`
 
 ```php
 <?PHP
@@ -125,42 +123,41 @@ define ('ROOT_URL', 'http://localhost/blog');
 ```
 
 In between php open and close PHP tags, using require statement,
-require  ``'config/constants.php'`` in the ``config/database.php``
-require  ``'config/database.php`` in the ``'partials/header.php'`` and close the php tag. after the require statement in ``'partials/header.php'``.
-Then right under it, in the ``'partials/header.php'``, paste the repeating header code that contains the nav,  since we have the nav repeating for all the pages
+require `'config/constants.php'` in the `config/database.php`
+require `'config/database.php` in the `'partials/header.php'` and close the php tag. after the require statement in `'partials/header.php'`.
+Then right under it, in the `'partials/header.php'`, paste the repeating header code that contains the nav, since we have the nav repeating for all the pages
 
 Then on each page in-between opening and closing php tags,
-include ``'partials/header.php'``
+include `'partials/header.php'`
 
-Do the same for the footer in the ``'partials/footer.php'`` by copying and pasting the footer code into the file. and including it in all the pages.
+Do the same for the footer in the `'partials/footer.php'` by copying and pasting the footer code into the file. and including it in all the pages.
+
+INCLUDE THE HEADER.PHP AND FOOTER.PHP PARTIALS IN ALL PAGES USING THE `include` KEYWORD
 
 ### For nav the links, script and css link tags
+
 <li> <a href="<?=ROOT_URL ?>blog.php">LOGO</a></li>
 <li> <a href="<?=ROOT_URL ?>blog.php">blog</a></li>
 <li> <a href="<?=ROOT_URL ?>logout.php">LOGOUT</a></li>
-<li> <a href="<?=ROOT_URL ?>admin/index.php">dashboard</a></li> 
+<li> <a href="<?=ROOT_URL ?>admin/index.php">dashboard</a></li>
 
 <script src="<?=ROOT_URL ?>js/main.js"></script>
-<link href="<?=ROOT_URL ?>css/styles.css" type="text/css></link> 
+<link href="<?=ROOT_URL ?>css/styles.css" type="text/css></link>
 
- and so on for all the links that leads to its own page. Do the same for the script tags and css link tags
+and so on for all the links that leads to its own page. Do the same for the script tags and css link tags
 
+LOGGING FUNCTIONALITY
+`header.php` in `admin/partials` is where we check who is logged in.
 
- LOGGING FUNCTIONALITY
-``header.php`` in ``admin/partials`` is where we check who is logged in.
-
-we are going to require ``'config/database.php'`` in the  ``admin/partials/header.php`` in between opening and closing php tags and it will also include the common pasted header code that includes the 
+we are going to require `'config/database.php'` in the `admin/partials/header.php` in between opening and closing php tags and it will also include the common pasted header code that includes the
 just after, just like the last time with other pages.
-
 
 ### DATABASE SETUP
 
 - Create a database in phpmyadmin named devHangout
-- 
+-
 
-
-
-In the ```admin/config/constants.php``` and the main ```config/constants.php``` file put this:
+In the `admin/config/constants.php` and the main `config/constants.php` file put this:
 
 OR YOU COULD JUST HAVE ONLY ONE CONFIG FOLDER AND HAVE THIS IN HERE AND LINK TO OTHER FILES EFFECTIVELY
 
@@ -175,7 +172,7 @@ define('DB_NAME', 'devHangout'); // name of the database
 
 ```
 
-In the ```admin/config/database.php``` write
+In the `admin/config/database.php` write
 
 ```php
 
@@ -189,13 +186,28 @@ if (mysqli_errno($connection)){
     die(msqli_error($connection))
 }
 
-``
-
+```
 
 ## SIGNUP FUNCTIONALITY IN DATATBASE
-Create a table in the devHangout database with name "users" having 8 columns to match the number of sign up input requirement
+
+After creating the devHangout database, Create a table in the devHangout database on phpmyadmin and name name it `users` having 8 ROWS to match the number of input fields in on the signup form
+
+1 row -> id, type - INT, length - 11, default-none, attributes- unsigned, index- primary
+2 row -> firstname, type - VARCHAR, length - 50
+3 row -> lastname, type - VARCHAR, length - 50
+4 row -> username, type - VARCHAR, length - 50
+5 row -> email, type - VARCHAR, length - 100
+6 row -> password, type - VARCHAR, length - 255 (because of hashing)
+7 row -> avatar, type - VARCHAR, length - 255 (because of hashing)
+8 row -> is_admin, type - TINYINT, length - 1 (because of hashing)
+THEN SAVE.
 
 
+## SIGNUP FORM LOGIC
+use ROOT_URL signup-logic.php for the form action as with other links
+on opening form element in the sign up, use `enctype="multipart/form-data"` and `method="POST"` as attributes
 
+on the signup.php page `require 'config/constants.php'` at the top of the file
+When you click on the submit button, it will take you to the signup logic page.
 
-
+create signup-logic.php that the submit button leads to and `require 'config/database.php'` in the file.
