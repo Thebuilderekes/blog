@@ -208,6 +208,76 @@ use ROOT_URL signup-logic.php for the form action as with other links
 on opening form element in the sign up, use `enctype="multipart/form-data"` and `method="POST"` as attributes
 
 on the signup.php page `require 'config/constants.php'` at the top of the file
-When you click on the submit button, it will take you to the signup logic page.
 
-create signup-logic.php that the submit button leads to and `require 'config/database.php'` in the file.
+### Sign up logic page
+
+Create ```signup-logic.php`` file that the submit button on the signup page leads to and `require 'config/database.php'` in the file.
+
+When you click on the submit button on the sign up page, it will take you to the signup logic page.
+also include the following code in the sign up logic file:
+
+```php
+// get signup form data if signup button was clicked 
+if (isset($_POST['submit'])) {
+$firstname = filter_var($_POST['firstname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS); 
+$lastname = filter_var($_POST['lastname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS); 
+$username = filter_var($_POST['username'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+$email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL); 
+$createpassword = filter_var($_POST['createpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS); $confirmpassword = filter_var($_POST['confirmpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS); 
+$avatar = $_FILES['avatar'];
+
+
+//You are checking for everythingso you have to be trying to submit when all fields are filled for you to know if there is any error. You echo to check things.
+
+if(!$firstname){
+    $_SESSION['signup'] = 'Please enter your firstname';
+}elseif (!$lastname){
+    $_SESSION['signup'] = 'Please enter your lastname';
+    
+    }
+    elseif (!$email){
+    $_SESSION['signup'] = 'Please enter your email';
+    
+    }
+    elseif (!$username){
+    $_SESSION['signup'] = 'Please enter your usernamename';
+    
+    }
+    elseif (strlen($createpassword) < 8 || ($confirmpassword) < 8){
+    $_SESSION['signup'] = 'Password should be 8+ characters long';
+    
+    }
+    elseif (!$avatar['name']){
+    $_SESSION['signup'] = 'Please add an avatar';
+    } else{
+      //check if passwords match
+    if ($createpassword !== $confirmpassword) {
+        $_SESSION['signup'] = 'Passwords do not match!';
+    }else {
+
+      $hashed_passwaord = password_hash($createpassword, PASSWORD_DEFAULT);
+
+      //check if user or email already exists in the database
+      $user_check_query = "SELECT * FROM users WHERE username= $username OR email=$email";
+      $user_check_result = mysqli_query($connection, $user_check_query);
+
+      if(mysqli_num_rows(user_ceheck_result) > 0){
+
+        $_SESSION['signup'] = 'Username or passowrd already exists!';
+
+
+      }else {
+
+      }
+    }
+    }
+
+
+//if button wasn't clicked, bounce back to signup page
+} else { 
+    header('Iocation: ' . ROOT_URL . 'signup.php'); 
+    die(); 
+}
+```
+
+
