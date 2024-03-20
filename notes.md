@@ -108,8 +108,9 @@ OR YOU COULD JUST HAVE ONLY ONE CONFIG FOLDER AND LINK TO OTHER FILES EFFECTIVEL
 
 ## Steps to making the files and everything play nicely
 
-Make sure you get the paths right ../ or ../../
-Don't forget to end each statement with ;
+- Make sure you get the paths right ../ or ../../
+- Don't forget to end each statement with ; 
+- make sure the links are used with the php tags when linking the files
 
 In `constants.php`
 
@@ -162,6 +163,8 @@ OR YOU COULD JUST HAVE ONLY ONE CONFIG FOLDER AND HAVE THIS IN HERE AND LINK TO 
 ```php
 
 <?php
+
+session_start()
 define('ROOT_URL', 'http://localhost/blog/');
 define('DB_HOST', 'localhost');
 define('DB_USER', 'Ekeopre');
@@ -271,23 +274,104 @@ if(!$firstname){
 
       }else {
 
+        // work on avatar by using time function to create a unique identifier for the name of each image getting uploaded
+        $time = time(); // uniquie time value to be appended to a
+        $avatar_name = $time . $avatar['name'];
+        $avatar_tmp_name = $avatar['tmp_name']; //temporary name of file
+         $avatar_destination_path = 'image/'. $avatar_name;
+
+         // make sure that file is an image
+         $allowed_file_format = ['png', 'jpg', 'jpeg'];
+         $file_extension = explode('.', $avatar_name);
+         $file_extension = end($file_extension);
+
+         if(in_array($file_extension, $allowed_file_format)){
+
+          //check for image size
+          if($avatar['size'] < 1000000){
+                 //upload avatar
+
+          }else{
+               $_SESSION['signup'] = "file size too big, should be less than 1MB "
+
+            }
+         }else{
+               $_SESSION['signup'] = "file should be in png, jpg or jpeg format"
+         }
+
       }
     }
-    
 
-//if button wasn't clicked, bounce back to signup page
+//if button wasn't clicked, and there isn't a successful sign up, and user tries to access any other page that exists after the signup page through browser URL search, redirect back to signup page
+
+if($_SESSION['signup']){
+ //pass data back to signup page so that data persists after trying to submit an incomplete form
+$_SESSION['signup-data'] = $_POST;
+
+    header('location: ' . ROOT_URL . 'signup.php');
+    die();
+}else {
+   $insert_user_query = "INSERT INTO users (firstname, lastname, username, email, password, avatar) VALUES ('$firstname', '$lastname', '$username', '$email', '$hashed_password', '$avatar_name', 0)";
+
+   if(!mysqli_query($connection)){
+     // redirect to login page with success message
+     $_SESSION['signup-success'] = "User created successfully";
+     header('location: ' . ROOT_URL . 'signin.php');
+     die();
+   }else {
+     $_SESSION['signup'] = "Couldn't create user";
+     header('location: ' . ROOT_URL . 'signup.php');
+     die();
+   }
+   }
+
+}
 } else {
     header('location: ' . ROOT_URL . 'signup.php');
     die();
 }
-
-}
 ```
 
+In the top of the sign-up.php page, write this to keep track of the input fields and get the values whenever there is a submitting on an incomplete form and you want the data to persist on the form: 
+
+```php
+<?php
+ $firstname = $_SESSION['signup-data']['firstname'] ?? null ;
+ $lastname = $_SESSION['signup-data']['lastname'] ?? null ;
+ $firstname = $_SESSION['signup-data']['username'] ?? null ;
+ $email = $_SESSION['signup-data']['email'] ?? null ;
+ $createpassword = $_SESSION['signup-data']['createpassword'] ?? null ;
+$confirmpassword= $_SESSION['signup-data']['confirmpassword'] ?? null ;
+
+//delete session
+
+?>
+```
+Then as attributes on the form inputs write
+ `value ="<?= $firstname ?>"` and so on with all other fields
 
 
 
-alternative code to be tested later
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Alternative code below to be tested later, use AI to find out what is valid PHP 8 code 
+
+
 ```php
 <?php
 
