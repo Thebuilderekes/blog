@@ -304,16 +304,21 @@ if(!$firstname){
 
 //if button wasn't clicked, and there isn't a successful sign up, and user tries to access any other page that exists after the signup page through browser URL search, redirect back to signup page
 
-if($_SESSION['signup']){
+if(isset($_SESSION['signup'])){
  //pass data back to signup page so that data persists after trying to submit an incomplete form
 $_SESSION['signup-data'] = $_POST;
 
     header('location: ' . ROOT_URL . 'signup.php');
     die();
 }else {
-   $insert_user_query = "INSERT INTO users (firstname, lastname, username, email, password, avatar) VALUES ('$firstname', '$lastname', '$username', '$email', '$hashed_password', '$avatar_name', 0)";
 
-   if(!mysqli_query($connection)){
+  //watch the video and edit this section if it doesn't work
+   $insert_user_query = "INSERT INTO users (firstname, lastname, username, email, password, avatar, is_admin) VALUES ('$firstname', '$lastname', '$username', '$email', '$hashed_password', '$avatar_name', 0)";
+   //leave comment content saying thank you and point that the issue at 2:44:41 to say that the issue was at line 76 for the closing bracket for VALUES
+ //watch the video and edit this section if it doesn't work
+   
+   $insert_user_result = mysqli_query($connection, $insert_user_query);
+   if(!mysqli_errno($connection)){
      // redirect to login page with success message
      $_SESSION['signup-success'] = "User created successfully";
      header('location: ' . ROOT_URL . 'signin.php');
