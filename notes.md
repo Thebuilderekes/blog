@@ -117,7 +117,7 @@ In `constants.php`
 ```php
 <?PHP
 
-define ('ROOT_URL', 'http://localhost/blog');
+define ('ROOT_URL', 'http://localhost/blog/');
 
 ```
 
@@ -132,7 +132,6 @@ include `'partials/header.php'`
 Do the same for the footer in the `'partials/footer.php'` by copying and pasting the footer code into the file. and including it in all the pages.
 
 INCLUDE THE HEADER.PHP AND FOOTER.PHP PARTIALS IN ALL PAGES USING THE `include` KEYWORD
-
 ### For nav the links, script and css link tags
 
 <li> <a href="<?=ROOT_URL ?>blog.php">LOGO</a></li>
@@ -220,12 +219,16 @@ also include the following code in the sign up logic file:
 
 ```php
 // get signup form data if signup button was clicked
-if (isset($_POST['submit'])) {
-$firstname = filter_var($_POST['firstname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-$lastname = filter_var($_POST['lastname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+if($_SERVER['REQUEST_METHOD'] === 'POST') {
+  htmlspecialchars()
+$firstname =   htmlspecialchars(
+filter_var($_POST['firstname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+$lastname = htmlspecialchars(
+filter_var($_POST['lastname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS));
 $username = filter_var($_POST['username'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
-$createpassword = filter_var($_POST['createpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS); $confirmpassword = filter_var($_POST['confirmpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+$createpassword = filter_var($_POST['createpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS); 
+$confirmpassword = filter_var($_POST['confirmpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 $avatar = $_FILES['avatar'];
 
 
@@ -236,9 +239,9 @@ $avatar = $_FILES['avatar'];
 //You can use echo command to debug and to check if things are working.
 
 if(!$firstname){
-    $_SESSION['signup'] = 'Please enter your firstname';
+    $_SESSION['signup'] = 'Please enter your first name';
 }elseif (!$lastname){
-    $_SESSION['signup'] = 'Please enter your lastname';
+    $_SESSION['signup'] = 'Please enter your last name';
 
     }
     elseif (!$email){
@@ -246,7 +249,7 @@ if(!$firstname){
 
     }
     elseif (!$username){
-    $_SESSION['signup'] = 'Please enter your usernamename';
+    $_SESSION['signup'] = 'Please enter your username';
 
     }
     elseif (strlen($createpassword) < 8 || ($confirmpassword) < 8){
@@ -258,6 +261,7 @@ if(!$firstname){
     } else{
       //check if passwords match
     if ($createpassword !== $confirmpassword) {
+      //alternative if($_POST['createpassword'] !== $_POST['confirmpassword'])
         $_SESSION['signup'] = 'Passwords do not match!';
     }else {
 
@@ -275,7 +279,7 @@ if(!$firstname){
       }else {
 
         // work on avatar by using time function to create a unique identifier for the name of each image getting uploaded
-        $time = time(); // uniquie time value to be appended to a
+        $time = time(); // unique time value to be appended to a
         $avatar_name = $time . $avatar['name'];
         $avatar_tmp_name = $avatar['tmp_name']; //temporary name of file
          $avatar_destination_path = 'image/'. $avatar_name;
