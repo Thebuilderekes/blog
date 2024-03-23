@@ -109,7 +109,7 @@ OR YOU COULD JUST HAVE ONLY ONE CONFIG FOLDER AND LINK TO OTHER FILES EFFECTIVEL
 ## Steps to making the files and everything play nicely
 
 - Make sure you get the paths right ../ or ../../
-- Don't forget to end each statement with ; 
+- Don't forget to end each statement with ;
 - make sure the links are used with the php tags when linking the files
 
 In `constants.php`
@@ -132,15 +132,23 @@ include `'partials/header.php'`
 Do the same for the footer in the `'partials/footer.php'` by copying and pasting the footer code into the file. and including it in all the pages.
 
 INCLUDE THE HEADER.PHP AND FOOTER.PHP PARTIALS IN ALL PAGES USING THE `include` KEYWORD
+
 ### For nav the links, script and css link tags
+
+#### nav links
 
 <li> <a href="<?=ROOT_URL ?>blog.php">LOGO</a></li>
 <li> <a href="<?=ROOT_URL ?>blog.php">blog</a></li>
 <li> <a href="<?=ROOT_URL ?>logout.php">LOGOUT</a></li>
 <li> <a href="<?=ROOT_URL ?>admin/index.php">dashboard</a></li>
 
+#### js script tag
+
 <script src="<?=ROOT_URL ?>js/main.js"></script>
-<link href="<?=ROOT_URL ?>css/styles.css" type="text/css></link>
+
+#### css link
+
+<link href="<?=ROOT_URL ?>css/styles.css" type="text/css>
 
 and so on for all the links that leads to its own page. Do the same for the script tags and css link tags
 
@@ -188,7 +196,7 @@ if (mysqli_errno($connection)){
 
 ```
 
-## SIGNUP FUNCTIONALITY IN DATATBASE
+## SIGNUP FUNCTIONALITY IN DATABASE
 
 After creating the devHangout database, Create a table in the devHangout database on phpmyadmin and name name it `users` having 8 ROWS to match the number of input fields in on the signup form
 set the fields in the database as follows, from first row to 8th row:
@@ -205,12 +213,16 @@ THEN SAVE.
 
 ## SIGNUP FORM LOGIC
 
+## SIGN UP PHP PAGE ALERT MESSAGE
+
+Check image file in assets folder to see require code and code placement for alert message
+
 use ROOT_URL signup-logic.php for the form action as with other links
 on opening form element in the sign up, use `enctype="multipart/form-data"` and `method="POST"` as attributes
 
 on the signup.php page `require 'config/constants.php'` at the top of the file
 
-### Sign up logic page
+## SIGN UP LOGIC PHP PAGE
 
 Create ``signup-logic.php` file in the root that the submit button on the `signup.php` page leads to and `require 'config/database.php'` in the file.
 
@@ -220,14 +232,13 @@ also include the following code in the sign up logic file:
 ```php
 // get signup form data if signup button was clicked
 if($_SERVER['REQUEST_METHOD'] === 'POST') {
-  htmlspecialchars()
-$firstname =   htmlspecialchars(
+$firstname =  htmlspecialchars(
 filter_var($_POST['firstname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS));
 $lastname = htmlspecialchars(
 filter_var($_POST['lastname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS));
 $username = filter_var($_POST['username'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
-$createpassword = filter_var($_POST['createpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS); 
+$createpassword = filter_var($_POST['createpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 $confirmpassword = filter_var($_POST['confirmpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 $avatar = $_FILES['avatar'];
 
@@ -320,7 +331,7 @@ $_SESSION['signup-data'] = $_POST;
    $insert_user_query = "INSERT INTO users (firstname, lastname, username, email, password, avatar, is_admin) VALUES ('$firstname', '$lastname', '$username', '$email', '$hashed_password', '$avatar_name', 0)";
    //leave comment content saying thank you and point that the issue at 2:44:41 to say that the issue was at line 76 for the closing bracket for VALUES
  //watch the video and edit this section if it doesn't work
-   
+
    $insert_user_result = mysqli_query($connection, $insert_user_query);
    if(!mysqli_errno($connection)){
      // redirect to login page with success message
@@ -341,45 +352,121 @@ $_SESSION['signup-data'] = $_POST;
 }
 ```
 
-In the top of the sign-up.php page, write this to keep track of the input fields and get the values whenever there is a submitting on an incomplete form and you want the data to persist on the form: 
+In the top of the sign-up.php page, write this code below to keep track of the input fields and get the values whenever the user is a submitting on an incomplete form and you want the data to persist on the form while showing the alert messages:
 
 ```php
 <?php
  $firstname = $_SESSION['signup-data']['firstname'] ?? null ;
  $lastname = $_SESSION['signup-data']['lastname'] ?? null ;
- $firstname = $_SESSION['signup-data']['username'] ?? null ;
+ $username = $_SESSION['signup-data']['username'] ?? null ;
  $email = $_SESSION['signup-data']['email'] ?? null ;
  $createpassword = $_SESSION['signup-data']['createpassword'] ?? null ;
 $confirmpassword= $_SESSION['signup-data']['confirmpassword'] ?? null ;
 
 //delete session
+unset($_SESSION['signup-data'])
+
+?>
+```
+
+Then as attributes on the form inputs write
+`value ="<?= $firstname ?>"` and so on with all other fields
+
+## SIGN IN PHP PAGE
+
+In the top of the sign-in.php page, write this code below to keep track of the input fields and get the values whenever the user is a submitting on an incomplete form or experiencing any problem and you want the data to persist on the form while showing the alert messages:
+
+```php
+<?php
+ $username_email = $_SESSION['signin-data']['username_email'] ?? null ;
+ $password = $_SESSION['signin-data']['password'] ?? null ;
+
+
+
+//delete session
+unset($_SESSION['signin-data'])
 
 ?>
 ```
 Then as attributes on the form inputs write
- `value ="<?= $firstname ?>"` and so on with all other fields
+`value ="<?= $username_email ?>"` and same with the password input
 
 
+### ALERT MESSAGE PLACEMENT
 
+Check image file in assets folder to see require code and code placement for alert message.
+instead OF 'signup' use 'signin'
 
+## SIGN IN LOGIC PHP PAGE
 
+create a sign in logic.php file and write in it the following:
 
+```php
+require 'config/database.php';
 
+if($_SERVER['REQUEST_METHOD'] === 'POST'){
+  //get form data
+   $username_email = htmlspecialchars($_POST['username_email']) //check this later to see if it needs to be changed for security purposes
+   $password = htmlspecialchars($_POST['password'])
 
+   if(empty($_POST['username_email'])){
+    $_SESSION['signin'] = "username or Email required";
 
+   }elseif(empty($_POST['password'])){
+    $_SESSION['signin'] = "Password required";
+   } else {
 
+    //fetch user from database
+    $fetch_user_query = "SELECT * FROM users WHERE username='$username_email' OR email= '$username_email'";
+    $fetch_user_result = mysqli_query($connection, $fetch_user_query);
 
+    if(mysqli_num_rows($fetch_user_result) == 1){
+           // user found, so convert the user's record into assoc array
+           $user_record = mysqli_fetch_assoc($fetch_user_result);
 
+           // get user's password
+           $db_password = $user_record['password']
 
+           //check if the user's form password matches the user password in the database
+           if(password_verify($password, $db_password)){
 
+                // set session for access control. This is where user id comes in
+                  $_SESSION['user-id'] = $user_record['id'];
 
+                  //set session if user is an admin
+                  if($user_record['is_admin'] == 1){
+                    $SESSION['user_is_admin'] = true;
+                  }
+                  header('location:' . ROOT_URL . 'admin/');
+           }else {
 
+             $_SESSION['signin'] = "Please check your input and try again";
 
+           }
 
+           }else {
 
+             $_SESSION['signin'] = "User not found";
 
-### Alternative code below to be tested later, use AI to find out what is valid PHP 8 code 
+           }
 
+   }
+
+   //if there ius a problem redirect user to signin page with login data
+   if(isset[$SESSION['signin']]){
+        $_SESSION['signin-data'] = $_POST;
+        header('location:' . ROOt_URL . 'signin.php');
+        die();
+   }
+
+} else {
+    header('location: ' . ROOT_URL . 'signin.php');
+    die();
+}
+
+```
+
+### Alternative code below to be tested later, use AI to find out what is valid PHP 8 code
 
 ```php
 <?php
