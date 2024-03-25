@@ -230,7 +230,8 @@ When you click on the submit button on the sign up page, it will take you to the
 also include the following code in the sign up logic file:
 
 ```php
-// get signup form data if signup button was clicked
+<?php
+// get signup form data method is POST
 if($_SERVER['REQUEST_METHOD'] === 'POST') {
 $firstname =  htmlspecialchars(
 filter_var($_POST['firstname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS));
@@ -382,13 +383,13 @@ In the top of the sign-in.php page, write this code below to keep track of the i
  $password = $_SESSION['signin-data']['password'] ?? null ;
 
 
-
+ 
 //delete session
 unset($_SESSION['signin-data'])
 
 ?>
 ```
-Then as attributes on the form inputs write
+Then as attributes on the sign in htmlk form inputs write
 `value ="<?= $username_email ?>"` and same with the password input
 
 
@@ -402,6 +403,7 @@ instead OF 'signup' use 'signin'
 create a sign in logic.php file and write in it the following:
 
 ```php
+<?php
 require 'config/database.php';
 
 if($_SERVER['REQUEST_METHOD'] === 'POST'){
@@ -427,13 +429,13 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
            // get user's password
            $db_password = $user_record['password']
 
-           //check if the user's form password matches the user password in the database
-           if(password_verify($password, $db_password)){
+           //check if the user's form password matches the user password in the database. ``password_verify()`` decrypts the hased password in thedatabase 
+            if(password_verify($password, $db_password)){
 
                 // set session for access control. This is where user id comes in
                   $_SESSION['user-id'] = $user_record['id'];
 
-                  //set session if user is an admin
+                  //set session if user is an admin i.e if is_admin has a value of 1
                   if($user_record['is_admin'] == 1){
                     $SESSION['user_is_admin'] = true;
                   }
@@ -465,83 +467,15 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
 }
 
 ```
+## Manage-categories, manage-users and index.php files to conditionally render list options
+In manage-categories.php file, condionally render some of the options accourding to the value of ``user-id``, check image file to see how it is done
 
-### Alternative code below to be tested later, use AI to find out what is valid PHP 8 code
+write ``<?php endif?>`` after the last list item before closinbg ul tag in manage-categories.php
 
-```php
-<?php
 
-if (isset($_POST['submit'])) {
-  $firstname = filter_var(trim($_POST['firstname']), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-  $lastname = filter_var(trim($_POST['lastname']), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-  $username = filter_var(trim($_POST['username']), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-  $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
+To check if the user is logged in we use the user-id to conditionally render the logged in and sign in links on the 
+check logged-in-rendering image to see how to set it in all ``header.php`` files in /partials and /admin
 
-  // Validate username format (example using regular expressions)
-  if (!preg_match('/^[a-zA-Z0-9._]+$/', $username)) {
-    $_SESSION['signup'] = 'Username should only contain letters, numbers, periods, and underscores.';
-    goto no_submit; // Use goto to avoid nested ifs unnecessarily
-  }
 
-  // Basic email format check
-  if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $_SESSION['signup'] = 'Please enter a valid email address.';
-    goto no_submit;
-  }
 
-  $createpassword = filter_var(trim($_POST['createpassword']), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-  $confirmpassword = filter_var(trim($_POST['confirmpassword']), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
-  // Check for empty password fields before strlen
-  if (empty($createpassword) || empty($confirmpassword)) {
-    $_SESSION['signup'] = 'Please enter and confirm your password.';
-    goto no_submit;
-  }
-
-  if (strlen($createpassword) < 8) {
-    $_SESSION['signup'] = 'Password should be at least 8 characters long.';
-    goto no_submit;
-  }
-
-  // More robust password validation (consider using password_strength libraries)
-  // ...
-
-  if ($createpassword !== $confirmpassword) {
-    $_SESSION['signup'] = 'Passwords do not match!';
-    goto no_submit;
-  }
-
-  // File upload validation (example using allowed MIME types)
-  $avatar = $_FILES['avatar'];
-  $allowed_mime_types = array("image/jpeg", "image/png", "image/gif");
-  if (!in_array($avatar['type'], $allowed_mime_types)) {
-    $_SESSION['signup'] = 'Invalid avatar file type. Only images (jpeg, png, gif) are allowed.';
-    goto no_submit;
-  }
-
-  // Hash password securely
-  $hashed_password = password_hash($createpassword, PASSWORD_DEFAULT);
-
-  // Use prepared statements to prevent SQL injection
-  $stmt = $connection->prepare("INSERT INTO users (firstname, lastname, username, email, password) VALUES (?, ?, ?, ?, ?)");
-  $stmt->bind_param("sssss", $firstname, $lastname, $username, $email, $hashed_password);
-  $stmt->execute();
-
-  // Check for insertion errors (example using mysqli_error)
-  if ($stmt->error) {
-    // Log the error or display a generic error message to the user
-    $_SESSION['signup'] = 'Registration failed. Please try again later.';
-    goto no_submit;
-  }
-
-  // Handle successful registration (redirect, etc.)
-  // ...
-
-  $stmt->close(); // Close the prepared statement
-
-  no_submit: // Label to jump to instead of nested ifs
-} else {
-  header('location: ' . ROOT_URL . 'signup.php');
-  die();
-}
-```
