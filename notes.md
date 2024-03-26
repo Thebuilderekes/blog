@@ -171,7 +171,7 @@ OR YOU COULD JUST HAVE ONLY ONE CONFIG FOLDER AND HAVE THIS IN HERE AND LINK TO 
 
 <?php
 
-session_start()
+session_start();
 define('ROOT_URL', 'http://localhost/blog/');
 define('DB_HOST', 'localhost');
 define('DB_USER', 'Ekeopre');
@@ -191,7 +191,9 @@ require 'constants.php';
 $connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 if (mysqli_errno($connection)){
-    die(msqli_error($connection))
+    //alternate way to write the if statement
+  //if ($connection-> connect_errno)
+    die(msqli_error($connection));
 }
 
 ```
@@ -201,6 +203,7 @@ if (mysqli_errno($connection)){
 After creating the devHangout database, Create a table in the devHangout database on phpmyadmin and name name it `users` having 8 ROWS to match the number of input fields in on the signup form
 set the fields in the database as follows, from first row to 8th row:
 
+         1col, 2col, 3col, 4col, 5col, 6col 
 1 row -> id, type - INT, length - 11, default-none, attributes- unsigned, index- primary
 2 row -> firstname, type - VARCHAR, length - 50
 3 row -> lastname, type - VARCHAR, length - 50
@@ -306,6 +309,7 @@ if(!$firstname){
           //check for image size
           if($avatar['size'] < 1000000){
                  //upload avatar
+                        move_uploaded_file($avatar_tmp_name, $avatar_destination_patih)
 
           }else{
                $_SESSION['signup'] = "file size too big, should be less than 1MB "
@@ -327,7 +331,7 @@ $_SESSION['signup-data'] = $_POST;
     header('location: ' . ROOT_URL . 'signup.php');
     die();
 }else {
-
+     // if evertything went well and sign up was successful insert user into the users table with below code
   //watch the video and edit this section if it doesn't work
    $insert_user_query = "INSERT INTO users (firstname, lastname, username, email, password, avatar, is_admin) VALUES ('$firstname', '$lastname', '$username', '$email', '$hashed_password', '$avatar_name', 0)";
    //leave comment content saying thank you and point that the issue at 2:44:41 to say that the issue was at line 76 for the closing bracket for VALUES
@@ -335,6 +339,8 @@ $_SESSION['signup-data'] = $_POST;
 
    $insert_user_result = mysqli_query($connection, $insert_user_query);
    if(!mysqli_errno($connection)){
+      // alternative way of writing this if statement
+    //if(!$connection -> connect_errno  )
      // redirect to login page with success message
      $_SESSION['signup-success'] = "User created successfully";
      header('location: ' . ROOT_URL . 'signin.php');
@@ -362,7 +368,7 @@ In the top of the sign-up.php page, write this code below to keep track of the i
  $username = $_SESSION['signup-data']['username'] ?? null ;
  $email = $_SESSION['signup-data']['email'] ?? null ;
  $createpassword = $_SESSION['signup-data']['createpassword'] ?? null ;
-$confirmpassword= $_SESSION['signup-data']['confirmpassword'] ?? null ;
+ $confirmpassword= $_SESSION['signup-data']['confirmpassword'] ?? null ;
 
 //delete session
 unset($_SESSION['signup-data'])
@@ -375,7 +381,7 @@ Then as attributes on the form inputs write
 
 ## SIGN IN PHP PAGE
 
-In the top of the sign-in.php page, write this code below to keep track of the input fields and get the values whenever the user is a submitting on an incomplete form or experiencing any problem and you want the data to persist on the form while showing the alert messages:
+At the top of the sign-in.php page, write this code below to keep track of the input fields and get the values whenever the user is a submitting on an incomplete form or experiencing any problem and you want the data to persist on the form while showing the alert messages:
 
 ```php
 <?php
@@ -383,15 +389,15 @@ In the top of the sign-in.php page, write this code below to keep track of the i
  $password = $_SESSION['signin-data']['password'] ?? null ;
 
 
- 
+
 //delete session
 unset($_SESSION['signin-data'])
 
 ?>
 ```
+
 Then as attributes on the sign in htmlk form inputs write
 `value ="<?= $username_email ?>"` and same with the password input
-
 
 ### ALERT MESSAGE PLACEMENT
 
@@ -429,7 +435,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
            // get user's password
            $db_password = $user_record['password']
 
-           //check if the user's form password matches the user password in the database. ``password_verify()`` decrypts the hased password in thedatabase 
+           //check if the user's form password matches the user password in the database. ``password_verify()`` decrypts the hased password in thedatabase
             if(password_verify($password, $db_password)){
 
                 // set session for access control. This is where user id comes in
@@ -454,10 +460,10 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
 
    }
 
-   //if there ius a problem redirect user to signin page with login data
+   //if there is a problem redirect user to signin page
    if(isset[$SESSION['signin']]){
         $_SESSION['signin-data'] = $_POST;
-        header('location:' . ROOt_URL . 'signin.php');
+        header('location:' . ROOT_URL . 'signin.php');
         die();
    }
 
@@ -467,15 +473,37 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
 }
 
 ```
+
 ## Manage-categories, manage-users and index.php files to conditionally render list options
-In manage-categories.php file, condionally render some of the options accourding to the value of ``user-id``, check image file to see how it is done
 
-write ``<?php endif?>`` after the last list item before closinbg ul tag in manage-categories.php
+In manage-categories.php file, condionally render some of the options according to the value of `user-id`,
+check image file in assets folder to see how it is done.
 
+write
 
-To check if the user is logged in we use the user-id to conditionally render the logged in and sign in links on the 
-check logged-in-rendering image to see how to set it in all ``header.php`` files in /partials and /admin
+```
+<?php endif?>
+```
 
+after the last list item just before closing ul tag in `manage-categories.php`
 
+To check if the user is logged in we use the `user-id` to conditionally render the logged in and sign in links on the navigation menu bar
 
+Check logged-in-rendering.jpg image to see how to set it in all `header.php` files fou8nd in `/partials` and `/admin`
 
+in the /partials/header.php file
+
+```php
+<?php
+if(isset($_SESSION['user-id'])){
+    // working on displaying the avatar that matches the user based on the user-id
+    $id = filter_var($_SESSION['user-id'], FILTER_SANITIZE_NUMBER_INT);
+    $query = "SELECT avatar FROM users WHERE id=$id ";
+    $result = mysqli_query($connection, $query);
+    $avatar = mysqli_fetch_assoc($result);
+}
+```
+
+then on the `header.php` page that has the image avatar in the navigation bar, set:
+
+``<img src="<?= ROOT_URL . 'images/' . $avatar['avatar']" >` this will displa
