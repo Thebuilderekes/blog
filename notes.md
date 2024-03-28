@@ -203,7 +203,8 @@ if (mysqli_errno($connection)){
 After creating the devHangout database, Create a table in the devHangout database on phpmyadmin and name name it `users` having 8 ROWS to match the number of input fields in on the signup form
 set the fields in the database as follows, from first row to 8th row:
 
-         1col, 2col, 3col, 4col, 5col, 6col 
+         1col, 2col, 3col, 4col, 5col, 6col
+
 1 row -> id, type - INT, length - 11, default-none, attributes- unsigned, index- primary
 2 row -> firstname, type - VARCHAR, length - 50
 3 row -> lastname, type - VARCHAR, length - 50
@@ -489,9 +490,9 @@ after the last list item just before closing ul tag in `manage-categories.php`
 
 To check if the user is logged in we use the `user-id` to conditionally render the logged in and sign in links on the navigation menu bar
 
-Check logged-in-rendering.jpg image to see how to set it in all `header.php` files fou8nd in `/partials` and `/admin`
+Check logged-in-rendering.jpg image to see how to set it in all `header.php` files fou8nd in `./partials` and `/admin/header.php`
 
-in the /partials/header.php file
+### in the ./partials/header.php file
 
 ```php
 <?php
@@ -506,4 +507,183 @@ if(isset($_SESSION['user-id'])){
 
 then on the `header.php` page that has the image avatar in the navigation bar, set:
 
-``<img src="<?= ROOT_URL . 'images/' . $avatar['avatar']" >` this will displa
+``<img src="<?= ROOT_URL . 'images/' . $avatar['avatar']" >` this will display the user's avatar according too the matching user who is logged in
+
+### admin/partials/header.php
+
+```php
+<?php
+require '/partials/header.php file'
+
+if(isset($_SESSION['user-id'])){
+
+    header('location: ' . ROOT_URL . 'signin.php');
+    die();
+
+}
+```
+
+### in the logout.php file
+
+```php
+<?php
+require 'config/constants.php';
+//destroy all sessions and redirect to home page
+session_destroy();
+
+    header('location: ' . 'ROOT_URL');
+   die()
+
+```
+
+## Add user logic
+
+### create add-user-logic.php file
+
+write this code in there, which is basically same code as in sign-up logic page. Note that all the repetition of code would be different if all of this was being done with OOP style.
+
+```php
+<?php
+// if form data method is POST
+if($_SERVER['REQUEST_METHOD'] === 'POST') {
+$firstname =  htmlspecialchars(
+filter_var($_POST['firstname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+$lastname = htmlspecialchars(
+filter_var($_POST['lastname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+$username = filter_var($_POST['username'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+$email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
+$createpassword = filter_var($_POST['createpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+$confirmpassword = filter_var($_POST['confirmpassword'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+$is_admin = filter_var($_POST['userrole'], FILTER_SANITIZE_NUMBER_INT);
+$avatar = $_FILES['avatar'];
+
+
+//You are checking for every input field so you have to have everything filled be trying to submit when all fields are filled for you to know if there is any error.
+
+//check opening and closing curly braces for every if statement
+
+//You can use echo command to debug and to check if things are working.
+
+//validate input values
+if(!$firstname){
+    $_SESSION['add-user'] = 'Please enter your first name';
+}elseif (!$lastname){
+    $_SESSION['add-user'] = 'Please enter your last name';
+
+    }
+    elseif (!$email){
+    $_SESSION['add-user'] = 'Please enter your email';
+
+    }
+       elseif (!$is_admin){
+    $_SESSION['add-user'] = 'Please select a user role';
+    }
+
+    elseif (!$username){
+    $_SESSION['add-user'] = 'Please enter your username';
+
+    }
+    elseif (strlen($createpassword) < 8 || ($confirmpassword) < 8){
+    $_SESSION['add-user'] = 'Password should be 8+ characters long';
+
+    }
+    elseif (!$avatar['name']){
+    $_SESSION['add-user'] = 'Please add an avatar';
+    } else{
+      //check if passwords match
+    if ($createpassword !== $confirmpassword) {
+        $_SESSION['add-user'] = 'Passwords do not match!';
+    }else {
+
+      $hashed_password = password_hash($createpassword, PASSWORD_DEFAULT);
+
+      //check if user or email already exists in the database
+      $user_check_query = "SELECT * FROM users WHERE username= $username OR email=$email";
+      $user_check_result = mysqli_query($connection, $user_check_query);
+
+      if(mysqli_num_rows(user_check_result) > 0){
+
+        $_SESSION['add-user'] = 'Username or password already exists!';
+
+
+      }else {
+
+        // work on avatar by using time function to create a unique identifier for the name of each image getting uploaded
+        $time = time(); // unique time value to be appended to a
+        $avatar_name = $time . $avatar['name'];
+        $avatar_tmp_name = $avatar['tmp_name']; //temporary name of file
+         $avatar_destination_path = '../images/'. $avatar_name;
+
+         // make sure that file is an image
+         $allowed_file_format = ['png', 'jpg', 'jpeg'];
+         $file_extension = explode('.', $avatar_name);
+         $file_extension = end($file_extension);
+
+         if(in_array($file_extension, $allowed_file_format)){
+
+          //check for image size
+          if($avatar['size'] < 1000000){
+                 //upload avatar
+                        move_uploaded_file($avatar_tmp_name, $avatar_destination_patih)
+
+          }else{
+               $_SESSION['add-user'] = "file size too big, should be less than 1MB "
+
+            }
+         }else{
+               $_SESSION['add-user'] = "file should be in png, jpg or jpeg format"
+         }
+
+      }
+
+
+//if button wasn't clicked, and there isn't a successful sign up, and user tries to access any other page that exists after the add-user page through browser URL search, redirect back to add-user page
+
+if(isset($_SESSION['add-user'])){
+ //pass data back to add-user page so that data persists after trying to submit an incomplete form
+$_SESSION['add-user-data'] = $_POST;
+
+    header('location: ' . ROOT_URL . 'admin/add-user.php');
+    die();
+}else {
+     // if everything went well and sign up was successful insert user into the users table with below code
+  //watch the video and edit this section if it doesn't work
+   $insert_user_query = "INSERT INTO users (firstname, lastname, username, email, password, avatar, is_admin) VALUES ('$firstname', '$lastname', '$username', '$email', '$hashed_password', '$avatar_name', $is_admin)";
+   //leave comment content saying thank you and point that the issue at 2:44:41 to say that the issue was at line 76 for the closing bracket for VALUES
+ //watch the video and edit this section if it doesn't work
+
+   $insert_user_result = mysqli_query($connection, $insert_user_query);
+   if(!mysqli_errno($connection)){
+      // alternative way of writing this if statement
+    //if(!$connection -> connect_errno  )
+     // redirect to login page with success message
+     $_SESSION['add-user-success'] = "User created successfully";
+     header('location: ' . ROOT_URL . 'admin/manage-users.php');
+     die();
+   }else {
+     $_SESSION['signup'] = "Couldn't create user";
+     header('location: ' . ROOT_URL . 'admin/add-user.php');
+     die();
+   }
+   }
+
+}
+} else {
+      header('location: ' . ROOT_URL . 'admin/add-user.php');
+    die();
+
+}
+```
+
+### in the add-user.php page
+
+`<form action = "<?= ROOT_URL ?> admin/add-user-logic.php" enctype="multipart/form-data" method = "POST">`  
+ give names to all the inputs in the form,
+
+```
+<select name ="user-role">
+<input name="avatar">
+
+```
+
+
