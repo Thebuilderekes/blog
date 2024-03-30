@@ -726,9 +726,9 @@ include 'partials/header.php'
 
 $current_admin_id = $_SESSION['user-id']; // get the id of the current user
 
-$query = "SLECT * FROM users WHERE NOT id=$current_admin_id" //search the user table and gety the id og the user that is not the current user id
+$query = "SELECT * FROM users WHERE NOT id=$current_admin_id" //search the user table and gety the id og the user that is not the current user id
 ```
-
+check manage user images in asset to set the alert messages and other settings
 
 
 
