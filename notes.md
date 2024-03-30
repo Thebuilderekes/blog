@@ -4,7 +4,7 @@ This is a blog app that allows users to sign up and sign in to create posts. You
 
 ## Features
 
-- Users can sign up and create their account and their details are stored in a database.
+
 - Users are either admins or author. Users are authors by default.
 - Users can login using either their username or email.
 - Users passwords are being hashed in the database.
@@ -575,9 +575,10 @@ if(!$firstname){
     $_SESSION['add-user'] = 'Please enter your email';
 
     }
-       elseif (!$is_admin){
-    $_SESSION['add-user'] = 'Please select a user role';
-    }
+    // you can omit this check if it causes issues but first experiment with it
+    //    elseif (!$is_admin === 0 || !$is_admin === 1 ){
+    // $_SESSION['add-user'] = 'Please select a user role';
+    // }
 
     elseif (!$username){
     $_SESSION['add-user'] = 'Please enter your username';
@@ -623,8 +624,9 @@ if(!$firstname){
 
           //check for image size
           if($avatar['size'] < 1000000){
-                 //upload avatar
-                        move_uploaded_file($avatar_tmp_name, $avatar_destination_patih)
+
+          //upload avatar
+           move_uploaded_file($avatar_tmp_name, $avatar_destination_patih)
 
           }else{
                $_SESSION['add-user'] = "file size too big, should be less than 1MB "
@@ -647,7 +649,7 @@ $_SESSION['add-user-data'] = $_POST;
     die();
 }else {
      // if everything went well and sign up was successful insert user into the users table with below code
-  //watch the video and edit this section if it doesn't work
+  //watch the video and edit this section if it doesn't work 3:44:00
    $insert_user_query = "INSERT INTO users (firstname, lastname, username, email, password, avatar, is_admin) VALUES ('$firstname', '$lastname', '$username', '$email', '$hashed_password', '$avatar_name', $is_admin)";
    //leave comment content saying thank you and point that the issue at 2:44:41 to say that the issue was at line 76 for the closing bracket for VALUES
  //watch the video and edit this section if it doesn't work
@@ -657,7 +659,7 @@ $_SESSION['add-user-data'] = $_POST;
       // alternative way of writing this if statement
     //if(!$connection -> connect_errno  )
      // redirect to login page with success message
-     $_SESSION['add-user-success'] = "User created successfully";
+     $_SESSION['add-user-success'] = "New user $firstname $lastname added successfully";
      header('location: ' . ROOT_URL . 'admin/manage-users.php');
      die();
    }else {
@@ -668,22 +670,66 @@ $_SESSION['add-user-data'] = $_POST;
    }
 
 }
+
 } else {
       header('location: ' . ROOT_URL . 'admin/add-user.php');
     die();
 
 }
+
 ```
 
 ### in the add-user.php page
 
+use the following code to persist the form data if there was an error
+
+```php
+<?php
+ $firstname = $_SESSION['add-user-data']['firstname'] ?? null ;
+ $lastname = $_SESSION['add-user-data']['lastname'] ?? null ;
+ $username = $_SESSION['add-user-data']['username'] ?? null ;
+ $email = $_SESSION['add-user-data']['email'] ?? null ;
+ $createpassword = $_SESSION['add-user-data']['createpassword'] ?? null ;
+ $confirmpassword= $_SESSION['add-user-data']['confirmpassword'] ?? null ;
+//  $is_admin= $_SESSION['add-user-data']['userrole'] ?? null ; dont use this
+
+
+//delete session
+unset($_SESSION['add-user-data'])
+
+?>
+```
+
+set the following in the add user form:
 `<form action = "<?= ROOT_URL ?> admin/add-user-logic.php" enctype="multipart/form-data" method = "POST">`  
  give names to all the inputs in the form,
+Then as attributes on the form inputs write
+`value ="<?= $firstname ?>"` and so on with all other fields
 
 ```
 <select name ="user-role">
 <input name="avatar">
 
 ```
+
+Check add-user-php-alert image for message alert format
+`unset($_SESSION['add-user'])` is the complete code in the image
+ 
+
+## in the manage-users php page
+
+// fetch user from databhase that is not the current logged in user to prevent us from being able to delete ourselves from the database when we are logged in
+
+```php 
+<?php
+include 'partials/header.php'
+
+$current_admin_id = $_SESSION['user-id']; // get the id of the current user
+
+$query = "SLECT * FROM users WHERE NOT id=$current_admin_id" //search the user table and gety the id og the user that is not the current user id
+```
+
+
+
 
 
