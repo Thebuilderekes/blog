@@ -4,7 +4,6 @@ This is a blog app that allows users to sign up and sign in to create posts. You
 
 ## Features
 
-
 - Users are either admins or author. Users are authors by default.
 - Users can login using either their username or email.
 - Users passwords are being hashed in the database.
@@ -70,39 +69,40 @@ categories
 
 ## Folder layout to be made inside htdocs folder in the lammp folder
 
-admin
-|--config
-|--constants.php
-|--database.php
-|--manage-users.php
-|--manage-category.php  
-|--add-users.php
-|--add-category.php
-|--add-post.php
-|--edit-user.php
-|--edit-post.php
-|--edit-category.php
-|--dashboard.php
-config
-|-- constants.php
-|-- database.php
-css
-|-- styles.css
-images
-js
-|-- main.js
-partials
-|--header.php
-|-footer.php
+admin/
+|_ config/
+| |_ constants.php
+| |_ database.php
+|_ manage-users.php
+|_ manage-category.php
+|_ add-users.php
+|_ add-users-logic.php
+|_ add-category.php
+|_ add-post.php
+|_ edit-user.php
+|_ edit-user-logic.php
+|_ edit-post.php
+|_ edit-category.php
+|_ dashboard.php
+css/
+|_ styles.css
+images/
+js/
+|_ main.js
+partials/
+|_ header.php
+|_ footer.php
 about.php
-blog.php  
-category-posts.php  
-contact.php  
-index.php  
-post.php  
-services.php  
+blog.php
+category-posts.php
+contact.php
+index.php
+post.php
+services.php
 signin.php
+signin-logic.php
 signup.php
+signup-logic.php
 
 OR YOU COULD JUST HAVE ONLY ONE CONFIG FOLDER AND LINK TO OTHER FILES EFFECTIVELY
 
@@ -178,6 +178,23 @@ define('DB_USER', 'Ekeopre');
 define('DB_PASS', 'dev91$$'); //password of database
 define('DB_NAME', 'devHangout'); // name of the database
 
+// a better and secure way to do this is like this:
+// session_start();
+// define('ROOT_URL', 'http://localhost/blog/');
+// define('DB_HOST', getenv('DB_HOST'));
+// define('DB_USER', getenv('DB_USER'));
+// define('DB_PASS', getenv('DB_PASS'));
+// define('DB_NAME', getenv('DB_NAME'));
+
+//And set these environment variables in your server configuration or in a .env file outside of your web root. and the .env located as below
+
+project-root/
+|_ config/
+|  |_ database.php
+|_ public_html/    <- Web Root
+|  |_ index.php
+|_ .env
+
 ```
 
 In the `admin/config/database.php` write
@@ -202,8 +219,6 @@ if (mysqli_errno($connection)){
 
 After creating the devHangout database, Create a table in the devHangout database on phpmyadmin and name name it `users` having 8 ROWS to match the number of input fields in on the signup form
 set the fields in the database as follows, from first row to 8th row:
-
-         1col, 2col, 3col, 4col, 5col, 6col
 
 1 row -> id, type - INT, length - 11, default-none, attributes- unsigned, index- primary
 2 row -> firstname, type - VARCHAR, length - 50
@@ -407,7 +422,7 @@ instead OF 'signup' use 'signin'
 
 ## SIGN IN LOGIC PHP PAGE
 
-create a sign in logic.php file and write in it the following:
+create a signin-logic.php file and write in it the following:
 
 ```php
 <?php
@@ -714,13 +729,12 @@ Then as attributes on the form inputs write
 
 Check add-user-php-alert image for message alert format
 `unset($_SESSION['add-user'])` is the complete code in the image
- 
 
 ## in the manage-users php page
 
-// fetch user from databhase that is not the current logged in user to prevent us from being able to delete ourselves from the database when we are logged in
+// fetch user from database that is not the current logged in user to prevent us from being able to delete ourselves from the database when we are logged in
 
-```php 
+```php
 <?php
 include 'partials/header.php'
 
@@ -728,8 +742,57 @@ $current_admin_id = $_SESSION['user-id']; // get the id of the current user
 
 $query = "SELECT * FROM users WHERE NOT id=$current_admin_id" //search the user table and gety the id og the user that is not the current user id
 ```
+
 check manage user images in asset to set the alert messages and other settings
 
+## in the edit-user php page
+
+The id always is needed in order to access the edit user page from the manage-user page
+
+```php
+<?php
+include 'partials/header.php'
+
+if(isset($_GET['id'])){
+
+$id = filter_var($_GET['id'], FILTER_SANITIZE_NUMBER_INT);
+$query = "SELECT * FROM users WHERE id =$id"; //getting the user id by querying the database
+$result =  mysqli_query($connection, $query); // establishing a connection with the query
+$user = mysqli_fetch_assoc($result);
+}else {
+  header('location:' . 'ROOT_URL' . 'admin/manage-users.php');
+die();
+}
+
+```
+
+## in the edit-user-logic php page
+
+```php
+<?php
+
+if($_SERVER['REQUEST_METHOD'] === 'POST') {
+  //get updated form data
+  $id = filter_var($_POST['id'], FILTER_SANITIZE_NUMBER_INT);
+  $firstname = filter_var($_POST['firstname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+  $lastname = filter_var($_POST['lastname'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+  $is_admin = filter_var($_POST['userrole'], FILTER_SANITIZE_NUMBER_INT);
 
 
+    if (!$firstname || $lastname) {
+    // update user
+    $query = "UPDATE users SET firstname='$firstname', lastname='$lastname', is_admin=$is_admin WHERE id=$id LIMIT 1";
+    $result = mysqli_query($connection, $query);
 
+    if (mysqli_errno($connection)) {
+      $_SESSION['edit-user'] = "Failed to update user.";
+    } else {
+        $_SESSION['edit-user-success'] = "User $firstname $lastname updated successfully";
+    }
+  }
+}
+
+header('location:' . 'ROOT_URL' . 'admin/manage-users.php');
+die();
+
+```
