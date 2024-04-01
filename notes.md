@@ -80,6 +80,7 @@ admin/
 |_ add-category.php
 |_ add-post.php
 |_ edit-user.php
+|_ delete-user.php
 |_ edit-user-logic.php
 |_ edit-post.php
 |_ edit-category.php
@@ -91,7 +92,7 @@ js/
 |_ main.js
 partials/
 |_ header.php
-|_ footer.php
+|\_ footer.php
 about.php
 blog.php
 category-posts.php
@@ -180,6 +181,17 @@ define('DB_NAME', 'devHangout'); // name of the database
 
 // a better and secure way to do this is like this:
 // session_start();
+
+// DB_HOST=localhost
+// DB_USER=Ekeopre
+// DB_PASS=dev91$$
+// DB_NAME=devHangout
+
+
+// Load environment variables
+// $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+// $dotenv->load();
+
 // define('ROOT_URL', 'http://localhost/blog/');
 // define('DB_HOST', getenv('DB_HOST'));
 // define('DB_USER', getenv('DB_USER'));
@@ -269,32 +281,35 @@ $avatar = $_FILES['avatar'];
 
 //You can use echo command to debug and to check if things are working.
 
-if(!$firstname){
-    $_SESSION['signup'] = 'Please enter your first name';
-}elseif (!$lastname){
-    $_SESSION['signup'] = 'Please enter your last name';
-
+    if(!$firstname){
+        $_SESSION['signup'] = 'Please enter your first name';
     }
-    elseif (!$email){
-    $_SESSION['signup'] = 'Please enter your email';
+        elseif (!$lastname){
+            $_SESSION['signup'] = 'Please enter your last name';
 
-    }
-    elseif (!$username){
-    $_SESSION['signup'] = 'Please enter your username';
+        }
+        elseif (!$email){
+        $_SESSION['signup'] = 'Please enter your email';
 
-    }
-    elseif (strlen($createpassword) < 8 || ($confirmpassword) < 8){
-    $_SESSION['signup'] = 'Password should be 8+ characters long';
+        }
+        elseif (!$username){
+        $_SESSION['signup'] = 'Please enter your username';
 
-    }
-    elseif (!$avatar['name']){
-    $_SESSION['signup'] = 'Please add an avatar';
-    } else{
+        }
+        elseif (strlen($createpassword) < 8 || ($confirmpassword) < 8){
+        $_SESSION['signup'] = 'Password should be 8+ characters long';
+
+        }
+        elseif (!$avatar['name']){
+        $_SESSION['signup'] = 'Please add an avatar';
+        }
+    else{
       //check if passwords match
-    if ($createpassword !== $confirmpassword) {
-      //alternative if($_POST['createpassword'] !== $_POST['confirmpassword'])
-        $_SESSION['signup'] = 'Passwords do not match!';
-    }else {
+        if ($createpassword !== $confirmpassword) {
+          //alternative if($_POST['createpassword'] !== $_POST['confirmpassword'])
+            $_SESSION['signup'] = 'Passwords do not match!';
+        }
+    else {
 
       $hashed_password = password_hash($createpassword, PASSWORD_DEFAULT);
 
@@ -306,70 +321,75 @@ if(!$firstname){
 
         $_SESSION['signup'] = 'Username or password already exists!';
 
+      }
+        else {
 
-      }else {
+          // work on avatar by using time function to create a unique identifier for the name of each image getting uploaded
+          $time = time(); // unique time value to be appended to a
+          $avatar_name = $time . $avatar['name'];
+          $avatar_tmp_name = $avatar['tmp_name']; //temporary name of file
+          $avatar_destination_path = 'image/'. $avatar_name;
 
-        // work on avatar by using time function to create a unique identifier for the name of each image getting uploaded
-        $time = time(); // unique time value to be appended to a
-        $avatar_name = $time . $avatar['name'];
-        $avatar_tmp_name = $avatar['tmp_name']; //temporary name of file
-         $avatar_destination_path = 'image/'. $avatar_name;
+          // make sure that file is an image
+          $allowed_file_format = ['png', 'jpg', 'jpeg'];
+          $file_extension = explode('.', $avatar_name);
+          $file_extension = end($file_extension);
 
-         // make sure that file is an image
-         $allowed_file_format = ['png', 'jpg', 'jpeg'];
-         $file_extension = explode('.', $avatar_name);
-         $file_extension = end($file_extension);
+          if(in_array($file_extension, $allowed_file_format)){
 
-         if(in_array($file_extension, $allowed_file_format)){
-
-          //check for image size
-          if($avatar['size'] < 1000000){
-                 //upload avatar
-                        move_uploaded_file($avatar_tmp_name, $avatar_destination_patih)
-
-          }else{
-               $_SESSION['signup'] = "file size too big, should be less than 1MB "
+            //check for image size
+            if($avatar['size'] < 1000000){
+                  //upload avatar
+                          move_uploaded_file($avatar_tmp_name, $avatar_destination_patih)
 
             }
-         }else{
-               $_SESSION['signup'] = "file should be in png, jpg or jpeg format"
-         }
+            else{
+                $_SESSION['signup'] = "file size too big, should be less than 1MB "
 
+              }
+          }
+          else{
+                $_SESSION['signup'] = "file should be in png, jpg or jpeg format"
+          }
+
+        }
       }
+
+  //if button wasn't clicked, and there isn't a successful sign up, and user tries to access any other page that exists after the signup page through browser URL search, redirect back to signup page
+
+  if(isset($_SESSION['signup'])){
+  //pass data back to signup page so that data persists after trying to submit an incomplete form
+  $_SESSION['signup-data'] = $_POST;
+
+      header('location: ' . ROOT_URL . 'signup.php');
+      die();
+  }
+  else{
+          // if evertything went well and sign up was successful insert user into the users table with below code
+        //watch the video and edit this section if it doesn't work
+        $insert_user_query = "INSERT INTO users (firstname, lastname, username, email, password, avatar, is_admin) VALUES ('$firstname', '$lastname', '$username', '$email', '$hashed_password', '$avatar_name', 0)";
+        //leave comment content saying thank you and point that the issue at 2:44:41 to say that the issue was at line 76 for the closing bracket for VALUES
+      //watch the video and edit this section if it doesn't work
+
+        $insert_user_result = mysqli_query($connection, $insert_user_query);
+        if(!mysqli_errno($connection)){
+            // alternative way of writing this if statement
+          //if(!$connection -> connect_errno  )
+          // redirect to login page with success message
+          $_SESSION['signup-success'] = "User created successfully";
+          header('location: ' . ROOT_URL . 'signin.php');
+          die();
+        }
+        else {
+          $_SESSION['signup'] = "Couldn't create user";
+          header('location: ' . ROOT_URL . 'signup.php');
+          die();
+        }
     }
 
-//if button wasn't clicked, and there isn't a successful sign up, and user tries to access any other page that exists after the signup page through browser URL search, redirect back to signup page
-
-if(isset($_SESSION['signup'])){
- //pass data back to signup page so that data persists after trying to submit an incomplete form
-$_SESSION['signup-data'] = $_POST;
-
-    header('location: ' . ROOT_URL . 'signup.php');
-    die();
-}else {
-     // if evertything went well and sign up was successful insert user into the users table with below code
-  //watch the video and edit this section if it doesn't work
-   $insert_user_query = "INSERT INTO users (firstname, lastname, username, email, password, avatar, is_admin) VALUES ('$firstname', '$lastname', '$username', '$email', '$hashed_password', '$avatar_name', 0)";
-   //leave comment content saying thank you and point that the issue at 2:44:41 to say that the issue was at line 76 for the closing bracket for VALUES
- //watch the video and edit this section if it doesn't work
-
-   $insert_user_result = mysqli_query($connection, $insert_user_query);
-   if(!mysqli_errno($connection)){
-      // alternative way of writing this if statement
-    //if(!$connection -> connect_errno  )
-     // redirect to login page with success message
-     $_SESSION['signup-success'] = "User created successfully";
-     header('location: ' . ROOT_URL . 'signin.php');
-     die();
-   }else {
-     $_SESSION['signup'] = "Couldn't create user";
-     header('location: ' . ROOT_URL . 'signup.php');
-     die();
-   }
-   }
-
+  }
 }
-} else {
+else {
     header('location: ' . ROOT_URL . 'signup.php');
     die();
 }
@@ -436,9 +456,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
    if(empty($_POST['username_email'])){
     $_SESSION['signin'] = "username or Email required";
 
-   }elseif(empty($_POST['password'])){
+   }
+   elseif(empty($_POST['password'])){
     $_SESSION['signin'] = "Password required";
-   } else {
+   }
+   else {
 
     //fetch user from database
     $fetch_user_query = "SELECT * FROM users WHERE username='$username_email' OR email= '$username_email'";
@@ -462,13 +484,15 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
                     $SESSION['user_is_admin'] = true;
                   }
                   header('location:' . ROOT_URL . 'admin/');
-           }else {
+           }
+           else {
 
              $_SESSION['signin'] = "Please check your input and try again";
 
            }
 
-           }else {
+           }
+           else {
 
              $_SESSION['signin'] = "User not found";
 
@@ -483,7 +507,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         die();
    }
 
-} else {
+}
+else {
     header('location: ' . ROOT_URL . 'signin.php');
     die();
 }
@@ -582,7 +607,8 @@ $avatar = $_FILES['avatar'];
 //validate input values
 if(!$firstname){
     $_SESSION['add-user'] = 'Please enter your first name';
-}elseif (!$lastname){
+}
+elseif (!$lastname){
     $_SESSION['add-user'] = 'Please enter your last name';
 
     }
@@ -609,7 +635,8 @@ if(!$firstname){
       //check if passwords match
     if ($createpassword !== $confirmpassword) {
         $_SESSION['add-user'] = 'Passwords do not match!';
-    }else {
+    }
+    else {
 
       $hashed_password = password_hash($createpassword, PASSWORD_DEFAULT);
 
@@ -622,7 +649,8 @@ if(!$firstname){
         $_SESSION['add-user'] = 'Username or password already exists!';
 
 
-      }else {
+      }
+      else {
 
         // work on avatar by using time function to create a unique identifier for the name of each image getting uploaded
         $time = time(); // unique time value to be appended to a
@@ -643,11 +671,13 @@ if(!$firstname){
           //upload avatar
            move_uploaded_file($avatar_tmp_name, $avatar_destination_patih)
 
-          }else{
+          }
+          else{
                $_SESSION['add-user'] = "file size too big, should be less than 1MB "
 
             }
-         }else{
+         }
+         else{
                $_SESSION['add-user'] = "file should be in png, jpg or jpeg format"
          }
 
@@ -662,7 +692,8 @@ $_SESSION['add-user-data'] = $_POST;
 
     header('location: ' . ROOT_URL . 'admin/add-user.php');
     die();
-}else {
+}
+else {
      // if everything went well and sign up was successful insert user into the users table with below code
   //watch the video and edit this section if it doesn't work 3:44:00
    $insert_user_query = "INSERT INTO users (firstname, lastname, username, email, password, avatar, is_admin) VALUES ('$firstname', '$lastname', '$username', '$email', '$hashed_password', '$avatar_name', $is_admin)";
@@ -677,7 +708,8 @@ $_SESSION['add-user-data'] = $_POST;
      $_SESSION['add-user-success'] = "New user $firstname $lastname added successfully";
      header('location: ' . ROOT_URL . 'admin/manage-users.php');
      die();
-   }else {
+   }
+   else {
      $_SESSION['signup'] = "Couldn't create user";
      header('location: ' . ROOT_URL . 'admin/add-user.php');
      die();
@@ -744,6 +776,7 @@ $query = "SELECT * FROM users WHERE NOT id=$current_admin_id" //search the user 
 ```
 
 check manage user images in asset to set the alert messages and other settings
+check 4:52 to get the layout for delete user alert messages in `manage-users.php file`
 
 ## in the edit-user php page
 
@@ -759,7 +792,8 @@ $id = filter_var($_GET['id'], FILTER_SANITIZE_NUMBER_INT);
 $query = "SELECT * FROM users WHERE id =$id"; //getting the user id by querying the database
 $result =  mysqli_query($connection, $query); // establishing a connection with the query
 $user = mysqli_fetch_assoc($result);
-}else {
+}
+else {
   header('location:' . 'ROOT_URL' . 'admin/manage-users.php');
 die();
 }
@@ -794,5 +828,56 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 header('location:' . 'ROOT_URL' . 'admin/manage-users.php');
 die();
+
+```
+
+## create delete-user php and in the delete-user php page
+
+if we are going to delete a user, we should also delete the avatar
+
+```php
+<?php
+    require 'config/database.php';
+
+//functionality for the delete buttons to delete user
+
+if($_GET['id']){
+
+  $id = filter_var($_POST['id'], FILTER_SANITIZE_NUMBER_INT);
+  $query = "SELECT * FROM users WHERE id =$id"; //getting the user id by querying the database
+  $result =  mysqli_query($connection, $query); // establishing a connection with the query
+  $user = mysqli_fetch_assoc($result);
+
+    //check
+    if(mysqli_num_rows($user) === 1){
+        $avatar_name = users['avatar'];
+        $avatar_destination_path = '../images/' . $avatar_name;
+
+        //delete the avatar  image name
+        if(avatar_destination_path){
+            unlink($avatar_destination_path);
+        }
+    }
+
+
+    // delete user from database
+    $delete_user_query = "DELETE FROM users WHERE id=$id";
+    $delete_user_result =  mysqli_query($connection, $delete_user_query);
+
+    if (mysqli_errno($connection)){
+        $_SESSION['delete-user'] = "user {$user['firstname']} {$user['lastname']}'could not be deleted"
+    }
+    else {
+
+        $_SESSION['delete-user-success'] = "{$user['firstname']}   {$user['lastname']} has been deleted sucessfully"
+    }
+
+
+}
+
+header('location:' . 'ROOT_URL' . 'admin/manage-users.php');
+die();
+
+
 
 ```
