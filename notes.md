@@ -36,8 +36,8 @@ This is a blog app that allows users to sign up and sign in to create posts. You
 
 ## SIGN IN PAGE
 
-- Each user has an account
 - Users can sign in
+- Each user has an account
 - User avatar shows up on nav bar
 
 ## HOMEPAGE
@@ -45,10 +45,10 @@ This is a blog app that allows users to sign up and sign in to create posts. You
 ### POSTS
 
 - Posts are fetched from the database
-- There's going to be only one featured post
+- There's going to be only one featured post on the homepage
 - Every post has a category.
 - You can click on the category name to list all posts that are under that category.
-  Some categories do not have posts.
+- Some categories do not have posts.
 
 ## BLOG PAGE
 
@@ -78,12 +78,15 @@ admin/
 |_ add-users.php
 |_ add-users-logic.php
 |_ add-category.php
+|_ add-category-logic.php
 |_ add-post.php
 |_ edit-user.php
 |_ delete-user.php
 |_ edit-user-logic.php
 |_ edit-post.php
+|_ edit-post-logic.php
 |_ edit-category.php
+|_ edit-category-logic.php
 |_ dashboard.php
 css/
 |_ styles.css
@@ -91,7 +94,7 @@ images/
 js/
 |_ main.js
 partials/
-|_ header.php
+|\_ header.php
 |\_ footer.php
 about.php
 blog.php
@@ -143,11 +146,11 @@ INCLUDE THE HEADER.PHP AND FOOTER.PHP PARTIALS IN ALL PAGES USING THE `include` 
 <li> <a href="<?=ROOT_URL ?>logout.php">LOGOUT</a></li>
 <li> <a href="<?=ROOT_URL ?>admin/index.php">dashboard</a></li>
 
-#### js script tag
+//js script tag
 
 <script src="<?=ROOT_URL ?>js/main.js"></script>
 
-#### css link
+//css link
 
 <link href="<?=ROOT_URL ?>css/styles.css" type="text/css>
 
@@ -159,7 +162,7 @@ LOGGING FUNCTIONALITY
 we are going to require `'config/database.php'` in the `admin/partials/header.php` in between opening and closing php tags and it will also include the common pasted header code that includes the
 just after, just like the last time with other pages.
 
-### DATABASE SETUP
+## DATABASE SETUP
 
 - Create a database in phpmyadmin named devHangout
 -
@@ -199,7 +202,7 @@ define('DB_NAME', 'devHangout'); // name of the database
 // define('DB_NAME', getenv('DB_NAME'));
 
 //And set these environment variables in your server configuration or in a .env file outside of your web root. and the .env located as below
-
+?>
 project-root/
 |_ config/
 |  |_ database.php
@@ -224,10 +227,10 @@ if (mysqli_errno($connection)){
   //if ($connection-> connect_errno)
     die(msqli_error($connection));
 }
-
+?>
 ```
 
-## SIGNUP FUNCTIONALITY IN DATABASE
+##SIGNUP FUNCTIONALITY IN DATABASE
 
 After creating the devHangout database, Create a table in the devHangout database on phpmyadmin and name name it `users` having 8 ROWS to match the number of input fields in on the signup form
 set the fields in the database as follows, from first row to 8th row:
@@ -242,9 +245,9 @@ set the fields in the database as follows, from first row to 8th row:
 8 row -> is_admin, type - TINYINT, length - 1 (because of hashing)
 THEN SAVE.
 
-## SIGNUP FORM LOGIC
+##SIGNUP FORM LOGIC
 
-## SIGN UP PHP PAGE ALERT MESSAGE
+##SIGN UP PHP PAGE ALERT MESSAGE
 
 Check image file in assets folder to see require code and code placement for alert message
 
@@ -393,6 +396,7 @@ else {
     header('location: ' . ROOT_URL . 'signup.php');
     die();
 }
+?>
 ```
 
 In the top of the sign-up.php page, write this code below to keep track of the input fields and get the values whenever the user is a submitting on an incomplete form and you want the data to persist on the form while showing the alert messages:
@@ -512,7 +516,7 @@ else {
     header('location: ' . ROOT_URL . 'signin.php');
     die();
 }
-
+?>
 ```
 
 ## Manage-categories, manage-users and index.php files to conditionally render list options
@@ -543,17 +547,19 @@ if(isset($_SESSION['user-id'])){
     $result = mysqli_query($connection, $query);
     $avatar = mysqli_fetch_assoc($result);
 }
+
+?>
 ```
 
 then on the `header.php` page that has the image avatar in the navigation bar, set:
 
-``<img src="<?= ROOT_URL . 'images/' . $avatar['avatar']" >` this will display the user's avatar according too the matching user who is logged in
+`<img src="<?= ROOT_URL . 'images/' . $avatar['avatar']">` this will display the user's avatar according too the matching user who is logged in
 
-### admin/partials/header.php
+###admin/partials/header.php
 
 ```php
 <?php
-require '/partials/header.php file'
+require '/partials/header.php file';
 
 if(isset($_SESSION['user-id'])){
 
@@ -561,6 +567,7 @@ if(isset($_SESSION['user-id'])){
     die();
 
 }
+?>
 ```
 
 ### in the logout.php file
@@ -573,7 +580,7 @@ session_destroy();
 
     header('location: ' . 'ROOT_URL');
    die()
-
+?>
 ```
 
 ## Add user logic
@@ -723,10 +730,10 @@ else {
     die();
 
 }
-
+?>
 ```
 
-### in the add-user.php page
+###in the add-user.php page
 
 use the following code to persist the form data if there was an error
 
@@ -738,7 +745,6 @@ use the following code to persist the form data if there was an error
  $email = $_SESSION['add-user-data']['email'] ?? null ;
  $createpassword = $_SESSION['add-user-data']['createpassword'] ?? null ;
  $confirmpassword= $_SESSION['add-user-data']['confirmpassword'] ?? null ;
-//  $is_admin= $_SESSION['add-user-data']['userrole'] ?? null ; dont use this
 
 
 //delete session
@@ -748,23 +754,23 @@ unset($_SESSION['add-user-data'])
 ```
 
 set the following in the add user form:
-`<form action = "<?= ROOT_URL ?> admin/add-user-logic.php" enctype="multipart/form-data" method = "POST">`  
- give names to all the inputs in the form,
+`<form action = "<?= ROOT_URL ?> admin/add-user-logic.php" enctype="multipart/form-data" method = "POST">`
+give names to all the inputs in the form,
 Then as attributes on the form inputs write
 `value ="<?= $firstname ?>"` and so on with all other fields
 
-```
+
 <select name ="user-role">
 <input name="avatar">
 
-```
 
 Check add-user-php-alert image for message alert format
 `unset($_SESSION['add-user'])` is the complete code in the image
 
 ## in the manage-users php page
 
-// fetch user from database that is not the current logged in user to prevent us from being able to delete ourselves from the database when we are logged in
+// We will not fetch user from database and list it as the current logged in user so that we can to prevent being able to delete ourselves from the database when we are logged in
+// When ther is not user in the database, we get an error message that says "No users found" at the top of the users table in the page
 
 ```php
 <?php
@@ -773,7 +779,7 @@ include 'partials/header.php'
 $current_admin_id = $_SESSION['user-id']; // get the id of the current user
 
 $query = "SELECT * FROM users WHERE NOT id=$current_admin_id" //search the user table and gety the id og the user that is not the current user id
-```
+````
 
 check manage user images in asset to set the alert messages and other settings
 check 4:52 to get the layout for delete user alert messages in `manage-users.php file`
@@ -797,7 +803,7 @@ else {
   header('location:' . 'ROOT_URL' . 'admin/manage-users.php');
 die();
 }
-
+?>
 ```
 
 ## in the edit-user-logic php page
@@ -828,7 +834,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 header('location:' . 'ROOT_URL' . 'admin/manage-users.php');
 die();
-
+?>
 ```
 
 ## create delete-user php and in the delete-user php page
@@ -848,7 +854,7 @@ if($_GET['id']){
   $result =  mysqli_query($connection, $query); // establishing a connection with the query
   $user = mysqli_fetch_assoc($result);
 
-    //check
+    //check if there is any data in the user table
     if(mysqli_num_rows($user) === 1){
         $avatar_name = users['avatar'];
         $avatar_destination_path = '../images/' . $avatar_name;
@@ -879,7 +885,7 @@ header('location:' . 'ROOT_URL' . 'admin/manage-users.php');
 die();
 
 
-
+?>
 ```
 
 ## create and in the add-category-logic.php file
@@ -917,7 +923,7 @@ elseif (!$description){
    if (mysqli_errno($connection)){
      $_SESSION['add-category'] = "couldn't add category"
      header('location:' . 'ROOT_URL' . 'admin/add-category.php');
-    die();
+     die();
    }
    else {
        $_SESSION['add-category-success'] = "Category $title added successfully";
@@ -929,8 +935,110 @@ elseif (!$description){
 
 
 }
+
+?>
 ```
-set error messages in the add-category page in the 5:06:00 time 
+
+set error messages in the `add-category.php` page in the 5:06:00 time
+
+### in the add-category.php page
+
+```php
+<?php
+
+require 'partial/header.php';
+
+ $title = $_SESSION['add-category-data']['title'] ?? null ;
+
+ $description = $_SESSION['add-category-data']['description'] ?? null ;
+
+
+unset($_SESSION['add-category-data']);
+
+?>
+```
+
+Check `add-category.php` page for appropriate conditional rendering setting
+
+## Create and manage-categories.php
+
+```php
+<?php
+ require 'partials/header.php'
+
+//fetch categories from database
+$query = "SELECT * FROM categories ORDER BY title";
+$categories = mysqli_query($connection, $query);
+
+?>
+
+```
+
+on top of the table in the page, run check to conditionally render data in the table see from 5:14:00 
+
+## in the edit-category
+
+```php
+<?php
+ require 'partials/header.php'
+
+if(isset($_GET['id'])){
+
+  $id = filter_var($_GET['id'], FILTER_SANITIZE_NUMBER_INT); // using GET here because we are changing something that already exists
+
+
+    $query = "SELECT avatar FROM users WHERE id=$id ";
+    $result = mysqli_query($connection, $query);
+
+   if(mysqli_num_rows($result) === 1){
+
+    $category = mysqli_fetch_assoc($result);
+}
+}
+else {
+
+  header('location:' . 'ROOT_URL' . 'admin/manage-categories.php');
+  die();
+}
+
+
+?>
+``` 
+//find appropriate form and value setup in page 5:26:00
+
+
+
+
+## in the edit-category-logic
+
+```php
+<?php
+
+
+if($_SERVER['REQUEST_METHOD'] === 'POST') {
+$id = filter_var($_POST['id'], FILTER_SANITIZE_NUMBER_INT);
+$title = filter_var($_POST['title'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+$description = filter_var($_POST['description'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+
+// validate input 
+    if(!$title || !$description){
+        $_SESSION['edit-category'] = "Invalid form input on edit category page"
+    }
+    else{
+          
+    $query = "UPDATE categories SET title='$title', description='$description', id=$id WHERE id=$id LIMIT 1";
+
+     $result = mysqli_query($connection, $query);
+
+
+
+    }
+
+}
+
+```
+
 
 
 
